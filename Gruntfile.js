@@ -22,11 +22,7 @@ module.exports = function(grunt) {
       options: { livereload: true },
       scripts: {
         files: 'library/js/src/*.js',
-        tasks: ['jshint', 'concat', 'uglify', 'clean']
-      },
-      css: {
-        files: 'library/sass/*.scss',
-        tasks: ['compass', 'cmq', 'cssmin', 'clean']
+        tasks: ['jshint', 'concat', 'uglify']
       },
       html: {
         files: '*.html',
