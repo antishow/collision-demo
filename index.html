@@ -8,8 +8,11 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Collision Detection Demo</title>
         <meta name="description" content="Demonstration of Collision Detection">
-        <link rel="stylesheet" href="/library/css/style.css">
+        <link rel="stylesheet" href="library/css/style.css">
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+        <script>
+        if(!window.jQuery){ document.write("<script src=\"library/js/vendor/jquery-1.11.1.min.js\"><" + "/script>"); }
+        </script>
     </head>
     <body>
         <!--[if lt IE 7]>
@@ -30,18 +33,23 @@
                 <legend>Vertices</legend> 
                 <button class="add-vertex">Add</button>
                 <div class="vertex">
-                    <input name="x" placeholder="X" value="125">
-                    <input name="y" placeholder="Y" value="125">
+                    <input name="x" placeholder="X" value="100">
+                    <input name="y" placeholder="Y" value="100">
                     <button class="remove-vertex">Remove</button>
                 </div>
                 <div class="vertex">
-                    <input name="x" placeholder="X" value="175">
-                    <input name="y" placeholder="Y" value="125">
+                    <input name="x" placeholder="X" value="150">
+                    <input name="y" placeholder="Y" value="100">
                     <button class="remove-vertex">Remove</button>
                 </div>
                 <div class="vertex">
-                    <input name="x" placeholder="X" value="175">
-                    <input name="y" placeholder="Y" value="175">
+                    <input name="x" placeholder="X" value="150">
+                    <input name="y" placeholder="Y" value="150">
+                    <button class="remove-vertex">Remove</button>
+                </div>
+                <div class="vertex">
+                    <input name="x" placeholder="X" value="100">
+                    <input name="y" placeholder="Y" value="150">
                     <button class="remove-vertex">Remove</button>
                 </div>
             </fieldset>
@@ -59,17 +67,22 @@
                 <legend>Vertices</legend> 
                 <button class="add-vertex">Add</button>
                 <div class="vertex">
-                    <input name="x" placeholder="X" value="100">
+                    <input name="x" placeholder="X" value="140">
                     <input name="y" placeholder="Y" value="100">
                     <button class="remove-vertex">Remove</button>
                 </div>
                 <div class="vertex">
-                    <input name="x" placeholder="X" value="150">
+                    <input name="x" placeholder="X" value="190">
+                    <input name="y" placeholder="Y" value="100">
+                    <button class="remove-vertex">Remove</button>
+                </div>
+                <div class="vertex">
+                    <input name="x" placeholder="X" value="190">
                     <input name="y" placeholder="Y" value="150">
                     <button class="remove-vertex">Remove</button>
                 </div>
                 <div class="vertex">
-                    <input name="x" placeholder="X" value="100">
+                    <input name="x" placeholder="X" value="140">
                     <input name="y" placeholder="Y" value="150">
                     <button class="remove-vertex">Remove</button>
                 </div>
