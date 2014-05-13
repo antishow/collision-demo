@@ -1,0 +1,42 @@
+BODY{
+	margin: 0;
+	padding: 0;
+}
+
+CANVAS{
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+}
+
+*{
+	box-sizing: border-box;
+}
+
+.polygon-input{
+	width: 300px;
+	font-size: 0px;
+	position: relative;
+	z-index: 2;
+}
+
+.polygon-input HEADER{
+	font-weight: bold;
+	font-size: 20px;
+}
+
+FIELDSET.color INPUT{
+	width: 33%;
+}
+
+FIELDSET.vertices INPUT{
+	width: 35%;
+}
+FIELDSET.vertices BUTTON{
+	width: 30%;
+}
+
+LEGEND, INPUT, BUTTON{
+	font-size: 16px;
+}
