@@ -387,30 +387,24 @@ Polygon = (function(){
 
 	function projectedOntoAxis(a)
 	{
-		var index, pVertices = [], pVector, pLength, pMin, pMax,min = null, max = null;
+		var index, l = this.vertices.length, pVector, pLength, pMin, pMax, min = null, max = null;
 
-		for(index in this.vertices)
+		pVector = this.vertices[0].projectedOnto(a);
+		min = max = pVector.dotProduct(a);
+		pMin = pMax = pVector;
+
+		for(index = 1; index<l; index++)
 		{
 			pVector = this.vertices[index].projectedOnto(a);
-			pVertices.push(pVector);
-			pLength = pVector.length;
-			if(min === null && max === null)
-			{
+			pLength = pVector.dotProduct(a);
+
+			if(pLength <= min){
 				min = pLength;
-				pMin = pVector.clone();
-				max = pLength;
-				pMax = pVector.clone();
+				pMin = pVector;
 			}
-			else
-			{
-				if(pLength <= min){
-					min = pLength;
-					pMin = pVector.clone();
-				}
-				if(pLength >= max){
-					max = pLength;
-					pMax = pVector.clone();
-				}
+			if(pLength >= max){
+				max = pLength;
+				pMax = pVector;
 			}
 		}
 
