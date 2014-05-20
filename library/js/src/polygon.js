@@ -107,6 +107,64 @@ Polygon = (function(){
 		return new Circle(Vector.midpoint([pMin, pMax]), (max - min)/2);
 	}
 
+	function collisionWithPolygon(polygon)
+	{
+		var ret = false,
+			testAxes = collisionAxesWithPolygon.call(this, polygon),
+			axis,
+			axisIndex,
+			axisCollision,
+			shortestCollision = null,
+			shortestCollisionLength = null;
+
+		for(axisIndex in testAxes)
+		{
+			axis = testAxes[axisIndex];
+			axisCollision = collisionWithPolygonOnAxis.call(this, polygon, axis);
+
+			if(!axisCollision)
+			{
+				// As long as one axis doesn't have a collision,
+				// there's NO collision, so let's just stop here
+				// instead of checking the rest
+				ret = false;
+				break;
+			}
+			else
+			{
+				if(shortestCollision === null)
+				{
+					shortestCollision = axisCollision;
+					shortestCollisionLength = axisCollision.length;
+				}
+				else
+				{
+					if(axisCollision.length < shortestCollisionLength)
+					{
+						shortestCollision = axisCollision;
+						shortestCollisionLength = axisCollision.length;
+					}
+				}
+			}
+			ret = shortestCollision;
+		}
+
+		return ret;
+	}
+
+	function collisionWithPolygonOnAxis(polygon, axis)
+	{
+		var projection = this.projectedOntoAxis(axis),
+			pProjection = polygon.projectedOntoAxis(axis),
+			ret;
+
+		console.log("Checking %s for a collision", axis.toString());
+		ret = projection.collisionWithCircle(pProjection, axis);
+		console.log(ret);
+
+		return ret;
+	}
+
 	Polygon.prototype = {
 		get center(){
 			return Vector.midpoint(this.vertices);
@@ -127,7 +185,9 @@ Polygon = (function(){
 		},
 		projectedOntoAxis: projectedOntoAxis,
 		collisionTestAxes: collisionTestAxes,
-		collisionAxesWithPolygon: collisionAxesWithPolygon
+		collisionAxesWithPolygon: collisionAxesWithPolygon,
+		collisionWithPolygon: collisionWithPolygon,
+		collisionWithPolygonOnAxis: collisionWithPolygonOnAxis
 	};
 
 	return Polygon;

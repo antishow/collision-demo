@@ -44,17 +44,27 @@ Circle = (function(){
 		this.radius = r;
 	}
 
-	function collisionWithCircle(c)
+	function collisionWithCircle(c, axis)
 	{
+		console.log(" Checking for collision between %s and %s", this.toString(), c.toString());
 		var ret = false,
 			d = c.center.subtract(this.center),
 			distance = d.length,
 			radiusTotal = this.radius + c.radius;
 
+		console.log(" Distance between centers: %s", distance);
+		console.log(" Sum of radii: %s", radiusTotal);
+
+		if(distance === 0)
+		{
+			d = axis || Vector.xAxis;
+		}
+
 		if(radiusTotal > distance)
 		{
-			d.length = radiusTotal - distance;
-			ret = d;
+			d.length = radiusTotal - distance;			
+			console.log(" COLLISION! %s", d.toString());
+			ret = d.clone();
 		}
 
 		return ret;
@@ -135,11 +145,44 @@ DrawController = (function($){
 		{
 			origin = new Vector(0,0);
 		}
+
+		if(!color)
+		{
+			color = "#000";
+		}
+
+		var canvasCenter = offset(),
+			vectorStart, 
+			vectorEnd,
+			arrowheadLength = 5, 
+			arrowSkew,
+			arrowLeft, 
+			arrowRight;
+
+		vectorStart = new Vector(canvasCenter.x + origin.x, canvasCenter.y + origin.y);
+		vectorEnd = vectorStart.clone().add(vector);
+		arrowLeft = vector.leftNormal().normalize().multiplyByScalar(arrowheadLength);
+		arrowRight = vector.rightNormal().normalize().multiplyByScalar(arrowheadLength);
+		arrowSkew = vector.clone().normalize().multiplyByScalar(-1 * arrowheadLength);
+
+		arrowLeft = Vector.midpoint([arrowLeft, arrowSkew]).add(vectorEnd);
+		arrowRight = Vector.midpoint([arrowRight, arrowSkew]).add(vectorEnd);
+
+		ctx.strokeStyle = color;
+		ctx.beginPath();
+		ctx.moveTo(vectorStart.x, vectorStart.y);
+		ctx.lineTo(vectorEnd.x, vectorEnd.y);
+		ctx.lineTo(arrowLeft.x, arrowLeft.y);
+		ctx.moveTo(vectorEnd.x, vectorEnd.y);
+		ctx.lineTo(arrowRight.x, arrowRight.y);
+		ctx.stroke();
+		ctx.closePath();
 	}
 
 	DrawController.drawAxis = drawAxis;
 	DrawController.drawCircle = drawCircle;
 	DrawController.drawPolygon = drawPolygon;
+	DrawController.drawVector = drawVector;
 
 	function onDocumentReady(){
 		ctx = CanvasController.ctx;
@@ -154,14 +197,26 @@ MainController = (function($){
 	{
 		CanvasController.clear();
 
-		var axis, polygons = [];
+		var testAxes, 
+			axis, 
+			i, 
+			pi, //NOT Math.PI, just another i
+			polygons = [],
+			polygon,
+			input,
+			polygonColor,
+			projectionColor,
+			collision,
+			collisionAxis,
+			collisionOrigin,
+			projection;
 
 		$(".polygon-input").each(function(){
 			polygons.push(PolygonInputController.getPolygon(this));
 		});
-		var testAxes = (polygons[0]).collisionAxesWithPolygon((polygons[1]));
+		testAxes = (polygons[0]).collisionAxesWithPolygon((polygons[1]));
 
-		for(var i in testAxes)
+		for(i in testAxes)
 		{
 			axis = testAxes[i];
 			DrawController.drawAxis(axis);
@@ -169,40 +224,32 @@ MainController = (function($){
 
 		for(i in polygons)
 		{
-			var polygon = polygons[i];
-			var input = $(".polygon-input").get(i);
-			var polygonColor = PolygonInputController.getPolygonColor(input);
-			var projectionColor = PolygonInputController.getProjectionColor(input);
+			polygon = polygons[i];
+			input = $(".polygon-input").get(i);
+			polygonColor = PolygonInputController.getPolygonColor(input);
+			projectionColor = PolygonInputController.getProjectionColor(input);
 
 			DrawController.drawPolygon(polygon, polygonColor);
 
-			for(var pi in testAxes)
+			for(pi in testAxes)
 			{
 				axis = testAxes[pi];
-				var projection = polygon.projectedOntoAxis(axis);
+				projection = polygon.projectedOntoAxis(axis);
 
 				DrawController.drawCircle(projection, projectionColor);
 			}
 		}
 
-		/*
-    $(".polygon-input").each(function(){
-        var s = PolygonInputController.getPolygon(this);
-        DrawController.drawPolygon(s, PolygonInputController.getPolygonColor(this));
-
-        var testAxes = s.collisionTestAxes();
-        for(var i in testAxes)
-        {
-            var axis = testAxes[i],
-                projection = s.projectedOntoAxis(axis);
-
-            DrawController.drawAxis(axis);
-            DrawController.drawCircle(projection, PolygonInputController.getProjectionColor(this));
-        }
-    });
-		*/
-
-
+		collision = (polygons[0]).collisionWithPolygon(polygons[1]);
+		if(collision)
+		{
+			collisionAxis = collision.clone().normalize();
+			projection = (polygons[0]).projectedOntoAxis(collisionAxis);
+			collisionOrigin = projection.center;
+			collisionOrigin.length = collisionOrigin.length + projection.radius;
+			collisionOrigin.subtract(collision);
+			DrawController.drawVector(collision, "#000", collisionOrigin);
+		}
 	}
 
 	function onDocumentReady()
@@ -411,6 +458,64 @@ Polygon = (function(){
 		return new Circle(Vector.midpoint([pMin, pMax]), (max - min)/2);
 	}
 
+	function collisionWithPolygon(polygon)
+	{
+		var ret = false,
+			testAxes = collisionAxesWithPolygon.call(this, polygon),
+			axis,
+			axisIndex,
+			axisCollision,
+			shortestCollision = null,
+			shortestCollisionLength = null;
+
+		for(axisIndex in testAxes)
+		{
+			axis = testAxes[axisIndex];
+			axisCollision = collisionWithPolygonOnAxis.call(this, polygon, axis);
+
+			if(!axisCollision)
+			{
+				// As long as one axis doesn't have a collision,
+				// there's NO collision, so let's just stop here
+				// instead of checking the rest
+				ret = false;
+				break;
+			}
+			else
+			{
+				if(shortestCollision === null)
+				{
+					shortestCollision = axisCollision;
+					shortestCollisionLength = axisCollision.length;
+				}
+				else
+				{
+					if(axisCollision.length < shortestCollisionLength)
+					{
+						shortestCollision = axisCollision;
+						shortestCollisionLength = axisCollision.length;
+					}
+				}
+			}
+			ret = shortestCollision;
+		}
+
+		return ret;
+	}
+
+	function collisionWithPolygonOnAxis(polygon, axis)
+	{
+		var projection = this.projectedOntoAxis(axis),
+			pProjection = polygon.projectedOntoAxis(axis),
+			ret;
+
+		console.log("Checking %s for a collision", axis.toString());
+		ret = projection.collisionWithCircle(pProjection, axis);
+		console.log(ret);
+
+		return ret;
+	}
+
 	Polygon.prototype = {
 		get center(){
 			return Vector.midpoint(this.vertices);
@@ -431,7 +536,9 @@ Polygon = (function(){
 		},
 		projectedOntoAxis: projectedOntoAxis,
 		collisionTestAxes: collisionTestAxes,
-		collisionAxesWithPolygon: collisionAxesWithPolygon
+		collisionAxesWithPolygon: collisionAxesWithPolygon,
+		collisionWithPolygon: collisionWithPolygon,
+		collisionWithPolygonOnAxis: collisionWithPolygonOnAxis
 	};
 
 	return Polygon;

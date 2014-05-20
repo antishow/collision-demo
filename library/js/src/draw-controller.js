@@ -55,11 +55,44 @@ DrawController = (function($){
 		{
 			origin = new Vector(0,0);
 		}
+
+		if(!color)
+		{
+			color = "#000";
+		}
+
+		var canvasCenter = offset(),
+			vectorStart, 
+			vectorEnd,
+			arrowheadLength = 5, 
+			arrowSkew,
+			arrowLeft, 
+			arrowRight;
+
+		vectorStart = new Vector(canvasCenter.x + origin.x, canvasCenter.y + origin.y);
+		vectorEnd = vectorStart.clone().add(vector);
+		arrowLeft = vector.leftNormal().normalize().multiplyByScalar(arrowheadLength);
+		arrowRight = vector.rightNormal().normalize().multiplyByScalar(arrowheadLength);
+		arrowSkew = vector.clone().normalize().multiplyByScalar(-1 * arrowheadLength);
+
+		arrowLeft = Vector.midpoint([arrowLeft, arrowSkew]).add(vectorEnd);
+		arrowRight = Vector.midpoint([arrowRight, arrowSkew]).add(vectorEnd);
+
+		ctx.strokeStyle = color;
+		ctx.beginPath();
+		ctx.moveTo(vectorStart.x, vectorStart.y);
+		ctx.lineTo(vectorEnd.x, vectorEnd.y);
+		ctx.lineTo(arrowLeft.x, arrowLeft.y);
+		ctx.moveTo(vectorEnd.x, vectorEnd.y);
+		ctx.lineTo(arrowRight.x, arrowRight.y);
+		ctx.stroke();
+		ctx.closePath();
 	}
 
 	DrawController.drawAxis = drawAxis;
 	DrawController.drawCircle = drawCircle;
 	DrawController.drawPolygon = drawPolygon;
+	DrawController.drawVector = drawVector;
 
 	function onDocumentReady(){
 		ctx = CanvasController.ctx;
