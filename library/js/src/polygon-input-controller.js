@@ -10,6 +10,7 @@ PolygonInputController = (function($){
 			vertex = clicked.closest(".vertex");
 
 		vertex.remove();
+		$(PolygonInputController).trigger("change");
 		return false;
 	}
 
@@ -20,6 +21,8 @@ PolygonInputController = (function($){
 			newVertex = $(vertexInputTemplate);
 
 			vertices.append(newVertex);
+			$(PolygonInputController).trigger("change");
+			return false;
 	}
 
 	function onInputChange()
