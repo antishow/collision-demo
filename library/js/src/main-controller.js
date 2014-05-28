@@ -49,13 +49,22 @@ MainController = (function($){
 		collision = (polygons[0]).collisionWithPolygon(polygons[1]);
 		if(collision)
 		{
-			collisionAxis = collision.clone().normalize();
-			projection = (polygons[0]).projectedOntoAxis(collisionAxis);
-			collisionOrigin = projection.center;
-			collisionOrigin.length = collisionOrigin.length + projection.radius;
-			collisionOrigin.subtract(collision);
-			DrawController.drawVector(collision, "#000", collisionOrigin);
+			drawPushArrow(polygons[0], polygons[1]);
 		}
+	}
+
+	function drawPushArrow(polygonA, polygonB)
+	{
+		var collision, collisionAxis, projectionA, projectionB, deltaC, arrowOrigin;
+
+		collision = polygonA.collisionWithPolygon(polygonB);
+		collisionAxis = collision.clone().normalize();
+		projectionA = (polygonA).projectedOntoAxis(collisionAxis);
+		projectionB = (polygonB).projectedOntoAxis(collisionAxis);
+		deltaC = projectionB.center.clone().subtract(projectionA.center);
+		deltaC.length = projectionA.radius;
+		collisionOrigin = projectionA.center.add(deltaC).subtract(collision);
+		DrawController.drawVector(collision, "#000", collisionOrigin);
 	}
 
 	function onDocumentReady()

@@ -46,14 +46,10 @@ Circle = (function(){
 
 	function collisionWithCircle(c, axis)
 	{
-		console.log(" Checking for collision between %s and %s", this.toString(), c.toString());
 		var ret = false,
 			d = c.center.subtract(this.center),
 			distance = d.length,
 			radiusTotal = this.radius + c.radius;
-
-		console.log(" Distance between centers: %s", distance);
-		console.log(" Sum of radii: %s", radiusTotal);
 
 		if(distance === 0)
 		{
@@ -63,7 +59,6 @@ Circle = (function(){
 		if(radiusTotal > distance)
 		{
 			d.length = radiusTotal - distance;			
-			console.log(" COLLISION! %s", d.toString());
 			ret = d.clone();
 		}
 
@@ -243,13 +238,22 @@ MainController = (function($){
 		collision = (polygons[0]).collisionWithPolygon(polygons[1]);
 		if(collision)
 		{
-			collisionAxis = collision.clone().normalize();
-			projection = (polygons[0]).projectedOntoAxis(collisionAxis);
-			collisionOrigin = projection.center;
-			collisionOrigin.length = collisionOrigin.length + projection.radius;
-			collisionOrigin.subtract(collision);
-			DrawController.drawVector(collision, "#000", collisionOrigin);
+			drawPushArrow(polygons[0], polygons[1]);
 		}
+	}
+
+	function drawPushArrow(polygonA, polygonB)
+	{
+		var collision, collisionAxis, projectionA, projectionB, deltaC, arrowOrigin;
+
+		collision = polygonA.collisionWithPolygon(polygonB);
+		collisionAxis = collision.clone().normalize();
+		projectionA = (polygonA).projectedOntoAxis(collisionAxis);
+		projectionB = (polygonB).projectedOntoAxis(collisionAxis);
+		deltaC = projectionB.center.clone().subtract(projectionA.center);
+		deltaC.length = projectionA.radius;
+		collisionOrigin = projectionA.center.add(deltaC).subtract(collision);
+		DrawController.drawVector(collision, "#000", collisionOrigin);
 	}
 
 	function onDocumentReady()
@@ -437,28 +441,25 @@ Polygon = (function(){
 
 	function projectedOntoAxis(a)
 	{
-		var index, l = this.vertices.length, pVector, pLength, pMin, pMax, min = null, max = null;
+		var index, l = this.vertices.length, pLength, min = null, max = null, center;
 
-		pVector = this.vertices[0].projectedOnto(a);
-		min = max = pVector.dotProduct(a);
-		pMin = pMax = pVector;
+		min = max = this.vertices[0].dotProduct(a);
 
 		for(index = 1; index<l; index++)
 		{
-			pVector = this.vertices[index].projectedOnto(a);
-			pLength = pVector.dotProduct(a);
+			pLength = this.vertices[index].dotProduct(a);
 
 			if(pLength <= min){
 				min = pLength;
-				pMin = pVector;
 			}
 			if(pLength >= max){
 				max = pLength;
-				pMax = pVector;
 			}
 		}
 
-		return new Circle(Vector.midpoint([pMin, pMax]), (max - min)/2);
+		center = (max - min)/2;
+
+		return new Circle(a.clone().multiplyByScalar(min + center), center);
 	}
 
 	function collisionWithPolygon(polygon)
@@ -512,9 +513,7 @@ Polygon = (function(){
 			pProjection = polygon.projectedOntoAxis(axis),
 			ret;
 
-		console.log("Checking %s for a collision", axis.toString());
 		ret = projection.collisionWithCircle(pProjection, axis);
-		console.log(ret);
 
 		return ret;
 	}
