@@ -83,28 +83,25 @@ Polygon = (function(){
 
 	function projectedOntoAxis(a)
 	{
-		var index, l = this.vertices.length, pVector, pLength, pMin, pMax, min = null, max = null;
+		var index, l = this.vertices.length, pLength, min = null, max = null, center;
 
-		pVector = this.vertices[0].projectedOnto(a);
-		min = max = pVector.dotProduct(a);
-		pMin = pMax = pVector;
+		min = max = this.vertices[0].dotProduct(a);
 
 		for(index = 1; index<l; index++)
 		{
-			pVector = this.vertices[index].projectedOnto(a);
-			pLength = pVector.dotProduct(a);
+			pLength = this.vertices[index].dotProduct(a);
 
 			if(pLength <= min){
 				min = pLength;
-				pMin = pVector;
 			}
 			if(pLength >= max){
 				max = pLength;
-				pMax = pVector;
 			}
 		}
 
-		return new Circle(Vector.midpoint([pMin, pMax]), (max - min)/2);
+		center = (max - min)/2;
+
+		return new Circle(a.clone().multiplyByScalar(min + center), center);
 	}
 
 	function collisionWithPolygon(polygon)
@@ -158,9 +155,7 @@ Polygon = (function(){
 			pProjection = polygon.projectedOntoAxis(axis),
 			ret;
 
-		console.log("Checking %s for a collision", axis.toString());
 		ret = projection.collisionWithCircle(pProjection, axis);
-		console.log(ret);
 
 		return ret;
 	}
